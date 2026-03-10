@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Barcode Lookup</title>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<style>
+body{
+font-family:Arial;
+text-align:center;
+background:#f5f5f5;
+}
+
+h1{
+margin-top:20px;
+}
+
+#reader{
+width:320px;
+margin:auto;
+}
+
+#result{
+font-size:28px;
+margin-top:20px;
+color:green;
+}
+
+#code{
+font-size:18px;
+margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Scan Barcode</h1>
+
+<div id="reader"></div>
+
+<div id="code"></div>
+<div id="result"></div>
+
+<script>
+
+const sheetURL =
+"https://docs.google.com/spreadsheets/d/1Bnp54ytP1XKn96vShauQHoOMJu5NrzfZqlqbeaNPKKs/gviz/tq?tqx=out:json";
+
+let table = {};
+
+fetch(sheetURL)
+.then(res => res.text())
+.then(data => {
+
+let json = JSON.parse(data.substr(47).slice(0,-2));
+let rows = json.table.rows;
+
+rows.forEach(r => {
+
+let number = r.c[0]?.v;
+let code = r.c[1]?.v;
+
+if(code && number){
+table[code] = number;
+}
+
+});
+
+});
+
+
+function onScanSuccess(decodedText) {
+
+document.getElementById("code").innerHTML =
+"Code: "+decodedText;
+
+let result = table[decodedText];
+
+if(result){
+
+document.getElementById("result").innerHTML =
+"Number: "+result;
+
+}else{
+
+document.getElementById("result").innerHTML =
+"Not found";
+
+}
+
+}
+
+const scanner = new Html5QrcodeScanner(
+"reader",
+{ fps: 10, qrbox: 250 }
+);
+
+scanner.render(onScanSuccess);
+
+</script>
+
+</body>
+</html>
